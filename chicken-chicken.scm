@@ -7,50 +7,61 @@
 (define disassemble-at-each-step? #f)
 
 (define (make-vm program)
-  (cons 2 (append (list 0 "") program (list 0))))
+  (let ((v (vector-append (vector 0 "") (list->vector program) (vector 0))))
+    (vector 2 (vector-length v) v)))
 
 (define vm (make-parameter (make-vm '())))
 
 (define (load-program program) (vm (make-vm program)))
 
-(define (pc) (car (vm)))
-(define (set-pc! new-pc) (set-car! (vm) new-pc))
+(define (pc) (vector-ref (vm) 0))
+(define (set-pc! new-pc) (vector-set! (vm) 0 new-pc))
 
-(define (stack) (cdr (vm)))
-(define (set-stack! new-stack) (set-cdr! (vm) new-stack))
+(define (stack-depth) (vector-ref (vm) 1))
+(define (set-stack-depth! new-depth) (vector-set! (vm) 1 new-depth))
 
 (define (valid-address? i)
-  (and (exact-integer? i) (>= i 0) (< i (length (stack)))))
+  (and (exact-integer? i) (>= i 0) (< i (stack-depth))))
 
 (define (valid-address i)
   (if (valid-address? i) i (error "The chicken has escaped the coop" i)))
 
 (define (stack-ref i)
-  (list-ref (stack) (valid-address i)))
+  (vector-ref (vector-ref (vm) 2) (valid-address i)))
 
 (define (stack-set! i value)
-  (set-car! (list-tail (stack) (valid-address i))
-            value))
+  (vector-set! (vector-ref (vm) 2) (valid-address i) value))
 
-(define (input) (stack-ref 1))
-(define (set-input! string) (stack-set! 1 string))
+(define (make-room-for n)
+  (let ((old-room (vector-length (vector-ref (vm) 2))))
+    (when (< old-room n)
+      (let loop ((new-room 64))
+        (if (< new-room n)
+            (loop (* new-room 2))
+            (set! (vector-ref (vm) 2)
+              (vector-append (vector-ref (vm) 2)
+                             (make-vector (- new-room old-room) 0))))))))
 
 (define (push x)
-  (set-stack! (append (stack) (list x))))
+  (let* ((i (stack-depth))
+         (n (+ i 1)))
+    (make-room-for n)
+    (set-stack-depth! n)
+    (stack-set! i x)))
 
 (define (pop)
-  (if (null? (stack)) (error "Stack underflow")
-      (let loop ((prev (cons #f (stack))))
-        (if (null? (cddr prev))
-            (let ((last-value (cadr prev)))
-              (set-cdr! prev '())
-              last-value)
-            (loop (cdr prev))))))
+  (let* ((n (- (stack-depth) 1))
+         (x (stack-ref n)))
+    (set-stack-depth! n)
+    x))
 
 (define (pop2)
   (let* ((b (pop))
          (a (pop)))
     (list a b)))
+
+(define (input) (stack-ref 1))
+(define (set-input! string) (stack-set! 1 string))
 
 (define (fetch-opcode)
   (let ((opcode (stack-ref (pc))))
