@@ -3,6 +3,8 @@
 The esoteric programming language Chicken implemented in Chicken
 Scheme.
 
+https://isotropic.org/papers/chicken.pdf
+
 http://web.archive.org/web/20180420010853/http://torso.me/chicken
 
 https://esolangs.org/wiki/Chicken
