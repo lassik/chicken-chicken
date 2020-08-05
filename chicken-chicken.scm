@@ -190,15 +190,6 @@
 (define (read-program)
   (map length (read-program-as-chickens)))
 
-(define (read-all-into-string)
-  (let loop ((cs '()))
-    (let ((c (read-char)))
-      (if (eof-object? c) (list->string (reverse cs)) (loop (cons c cs))))))
-
-(define (read-input)
-  (let ((str (read-all-into-string)))
-    (or (string->number str) str)))
-
 (define (main args)
   (let-values
       (((source-file initial-input)
