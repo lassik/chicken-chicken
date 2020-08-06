@@ -12,3 +12,5 @@ https://esolangs.org/wiki/Chicken
 https://github.com/igorw/chicken-php
 
 http://call-cc.org (cluck dot org)
+
+https://en.wikipedia.org/wiki/Enter_the_Chicken
